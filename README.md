@@ -8,8 +8,8 @@ This script is for Pok√©mon Essentials. When a switch is ON, it displays at pok√
 ![](Screens/screen4.png)
 ![](Screens/screen5.png)
 
+## Compatibility
+Works only on Essentials v18 and v18.1. To see other Essentials versions, look at [all branches](../../branches/all).
+
 ## Installation
 Follow the [Script](/Script.rb) instructions. The sample script files are in [Files folder](/Files).
-
-## Compatibility
-Tested on Essentials v17.2. Doesn't work with v18 or above.
