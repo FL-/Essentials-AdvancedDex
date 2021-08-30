@@ -144,7 +144,7 @@ class PokemonPokedexInfo_Scene
     # Type icon
     if !@type1 # Only checks for not owned pokémon
       @type1=pbGetSpeciesData(@species,0,SpeciesType1)
-      @type2=pbGetSpeciesData(@species,0,SpeciesType1)
+      @type2=pbGetSpeciesData(@species,0,SpeciesType2)
     end
     type1rect = Rect.new(0,@type1*32,96,32)
     type2rect = Rect.new(0,@type2*32,96,32)
