@@ -42,10 +42,6 @@ class PokemonPokedexInfo_Scene
   # When true always shows the egg moves of the first evolution stage
   EGGMOVESFISTSTAGE = true
   
-  # When false shows different messages for each of custom evolutions,
-  # change the messages to ones that fills to your method
-  HIDECUSTOMEVOLUTION = true
-  
   # When true displays TMs/HMs/Tutors moves
   SHOWMACHINETUTORMOVES = true
   
