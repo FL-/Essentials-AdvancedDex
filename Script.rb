@@ -196,13 +196,7 @@ class PokemonPokedexInfo_Scene
   end  
   
   def getInfo
-    ret = []
-    for i in 0...2*4
-      ret[i]=[]
-      for j in 0...6
-        ret[i][j]=nil
-      end
-    end  
+    ret = Array.new(2*3){ [] }
     # Type
     @type1=pbGetSpeciesData(@species,0,SpeciesType1)
     @type2=pbGetSpeciesData(@species,0,SpeciesType2)
@@ -353,10 +347,11 @@ class PokemonPokedexInfo_Scene
     for string in evolutionsStrings
       if(line>5) # For when the pokémon has more than 3 evolutions (AKA Eevee) 
         line=0
-          column+=2
+        column+=2
         @infoPages+=1 # Creates a new page
+		ret += Array.new(2){ [] } 
       end
-        ret[column][line] = string
+      ret[column][line] = string
       line+=1
     end
     return ret
@@ -417,7 +412,7 @@ class PokemonPokedexInfo_Scene
       when PBEvolution::TradeSpecies;_INTL("{1} trading by {2}",
           evoPokemon,PBSpecies.getName(evoItem))
     end  
-      ret = _INTL("{1} by an unknown way", evoPokemon) if ret.empty?
+      ret = _INTL("{1} by an unknown way", evoPokemon) if !ret
     return ret    
   end 
   
