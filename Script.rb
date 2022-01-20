@@ -21,7 +21,7 @@
 
 PluginManager.register({                                                 
   :name    => "Advanced Pokédex",                                        
-  :version => "1.3",                                                     
+  :version => "1.3.1",                                                     
   :link    => "https://www.pokecommunity.com/showthread.php?t=315535",             
   :credits => "FL"
 })
@@ -231,7 +231,7 @@ class PokemonPokedexInfo_Scene
   
   def getInfo
     # ret works like a table with two columns per page
-    ret = Array.new(2*6){ [] }
+    ret = Array.new(2*4){ [] }
     # Base Stats
     ret[0][0]=_ISPRINTF("                             HP ATK DEF SPD SAT SDF TOT")
     ret[0][1]=_ISPRINTF(
@@ -348,6 +348,7 @@ class PokemonPokedexInfo_Scene
       if line>5  # For when the pokémon has more than 3 evolutions (AKA Eevee) 
         line=0
         column+=2
+        ret += Array.new(2){ [] }
       end
       ret[column][line] = string
       line+=1
