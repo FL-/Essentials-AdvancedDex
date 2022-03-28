@@ -1,17 +1,17 @@
 #===============================================================================
-# * Advanced Pokédex - by FL (Credits will be apreciated)
+# * Advanced Pokï¿½dex - by FL (Credits will be apreciated)
 #===============================================================================
 #
-# This script is for Pokémon Essentials. When a switch is ON, it displays at 
-# pokédex the pokémon PBS data for a caught pokémon like: base exp, egg steps
-# to hatch, abilities, wild hold item, evolution, the moves that pokémon can 
+# This script is for Pokï¿½mon Essentials. When a switch is ON, it displays at 
+# pokï¿½dex the pokï¿½mon PBS data for a caught pokï¿½mon like: base exp, egg steps
+# to hatch, abilities, wild hold item, evolution, the moves that pokï¿½mon can 
 # learn by level/breeding/machines/tutors, among others.
 #
 #===============================================================================
 #
 # To this script works, put it above main, put a 512x384 background named 
 # "bg_advanced" for this screen in "Graphics/Pictures/Pokedex/". At same folder,
-# put three 512x32 images for the top pokédex selection named
+# put three 512x32 images for the top pokï¿½dex selection named
 # "advancedInfoBar", "advancedAreaBar" and "advancedFormsBar".
 #
 # -In PScreen_PokedexEntry script section, change both lines (use Ctrl+F to find
@@ -142,7 +142,7 @@ class PokemonPokedexInfo_Scene
     pbDrawTextPositions(@sprites["overlay"].bitmap, textpos)
     
     # Type icon
-    if !@type1 # Only checks for not owned pokémon
+    if !@type1 # Only checks for not owned pokï¿½mon
       dexdata=pbOpenDexData
       pbDexDataOffset(dexdata,@species,8)
       @type1=dexdata.fgetb
@@ -203,14 +203,7 @@ class PokemonPokedexInfo_Scene
   end  
   
   def getInfo
-    ret = []
-    for i in 0...2*4
-      ret[i]=[]
-      for j in 0...6
-        ret[i][j]=nil
-      end
-    end  
-    dexdata=pbOpenDexData
+    ret = Array.new(2*3){ [] }
     # Type
     pbDexDataOffset(dexdata,@species,8)
     @type1=dexdata.fgetb
@@ -378,12 +371,13 @@ class PokemonPokedexInfo_Scene
     evolutionsStrings.shift
     line+=1
       for string in evolutionsStrings
-      if(line>5) # For when the pokémon has more than 3 evolutions (AKA Eevee) 
+      if(line>5) # For when the pokï¿½mon has more than 3 evolutions (AKA Eevee) 
         line=0
-          column+=2
+        column+=2
         @infoPages+=1 # Creates a new page
+		ret += Array.new(2){ [] } 
       end
-        ret[column][line] = string
+      ret[column][line] = string
       line+=1
       end
       # End
@@ -401,7 +395,7 @@ class PokemonPokedexInfo_Scene
       when 2; _INTL("{1} when happy at day",evoPokemon)
       when 3; _INTL("{1} when happy at night",evoPokemon)
       when 4, 13;_INTL("{1} at level {2}",
-          evoPokemon,evoItem) # Pokémon that evolve by level AND Ninjask
+          evoPokemon,evoItem) # Pokï¿½mon that evolve by level AND Ninjask
       when 5; _INTL("{1} trading",evoPokemon)
       when 6; _INTL("{1} trading holding {2}",
           evoPokemon,PBItems.getName(evoItem))
