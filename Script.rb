@@ -1,41 +1,70 @@
 #===============================================================================
-# * Advanced Pokédex - by FL (Credits will be apreciated)
+# * Advanced PokÃ©dex - by FL
 #===============================================================================
 #
-# This script is for Pokémon Essentials. When a switch is ON, it displays at 
-# pokédex the pokémon PBS data for a caught pokémon like: base exp, egg steps
-# to hatch, abilities, wild hold item, evolution, the moves that pokémon can 
+# This script is for PokÃ©mon Essentials. When a switch is ON, it displays at 
+# pokÃ©dex the pokÃ©mon PBS data for a caught pokÃ©mon like: base exp, egg steps
+# to hatch, abilities, wild hold item, evolution, the moves that pokÃ©mon can 
 # learn by level/breeding/machines/tutors, among others.
 #
 #===============================================================================
 #
-# To this script works, put it above main, put a 512x384 background named 
-# "bg_advanced" for this screen in "Graphics/Pictures/Pokedex/". At same folder,
-# put three 512x32 images for the top pokédex selection named
-# "advancedInfoBar", "advancedAreaBar" and "advancedFormsBar".
+# To this script works, put it above main, put a 512x384 background for this
+# screen in "Graphics/Pictures/advancedPokedex" location and three 512x384 for
+# the top pokÃ©dex selection bar at "Graphics/Pictures/advancedPokedexEntryBar",
+# "Graphics/Pictures/advancedPokedexNestBar" and
+# "Graphics/Pictures/advancedPokedexFormBar".
 #
-# -In PScreen_PokedexEntry script section, change both lines (use Ctrl+F to find
-# it) '@page = 3 if @page>3' into '@page=@maxPage if @page>@maxPage'.
+# -In PokemonPokedex script section, after line (use Ctrl+F to find it)
+# '@sprites["searchlist"].visible=false' add:
 #
-# -Right after first line 'if Input.trigger?(Input::A)' add:
+# @sprites["dexbar"]=IconSprite.new(0,0,@viewport)
+# @sprites["dexbar"].setBitmap(_INTL("Graphics/Pictures/advancedPokedexEntryBar"))
+# @sprites["dexbar"].visible=false
 #
-# if @page == 4
-#   @subPage-=1
-#   @subPage=@totalSubPages if @subPage<1
-#   displaySubPage
+# -After line '@sprites["dexentry"].visible=true' add:
+#
+# if @sprites["dexbar"] && $game_switches[AdvancedPokedexScene::SWITCH]
+#   @sprites["dexbar"].visible=true 
+# end 
+#
+# -Change line 'newpage=page+1 if page<3' to 
+# 'newpage=page+1 if page<($game_switches[AdvancedPokedexScene::SWITCH] ? 4 : 3)'.
+# -After line 'ret=screen.pbStartScreen(@dexlist[curindex][0],listlimits)' add:
+#
+# when 4 # Advanced Data
+#   scene=AdvancedPokedexScene.new
+#   screen=AdvancedPokedex.new(scene)
+#   ret=screen.pbStartScreen(@dexlist[curindex][0],listlimits)
+#
+# -In PokemonNestAndForm script section, before line 
+# '@sprites["map"]=IconSprite.new(0,0,@viewport)' add:
+#
+# if $game_switches[AdvancedPokedexScene::SWITCH]
+#   @sprites["dexbar"]=IconSprite.new(0,0,@viewport)
+#   @sprites["dexbar"].setBitmap(_INTL("Graphics/Pictures/advancedPokedexNestBar"))
 # end
 #
-# -Right after second line 'elsif Input.trigger?(Input::C)' add:
+# -Before line 
+# '@sprites["info"]=BitmapSprite.new(Graphics.width,Graphics.height,@viewport)'
+# add:
 #
-# if @page == 4
-#   @subPage+=1
-#   @subPage=1 if @subPage>@totalSubPages
-#   displaySubPage
+# if $game_switches[AdvancedPokedexScene::SWITCH]
+#   @sprites["dexbar"]=IconSprite.new(0,0,@viewport)
+#   @sprites["dexbar"].setBitmap(_INTL("Graphics/Pictures/advancedPokedexFormBar"))
 # end
+#
+# -After line 'pbChooseForm' add:
+#
+# elsif Input.trigger?(Input::RIGHT)
+#   if $game_switches[AdvancedPokedexScene::SWITCH]
+#     ret=6
+#     break
+#   end
 #
 #===============================================================================
 
-class PokemonPokedexInfo_Scene
+class AdvancedPokedexScene
   # Switch number that toggle this script ON/OFF
   SWITCH=70
   
@@ -58,60 +87,28 @@ class PokemonPokedexInfo_Scene
   SHOWTUTORMOVES = true
   
   # The division between tutor and machine (TM/HMs) moves is made by 
-  # the TM data in items.txt PBS
+  # the TM data in items.txt PBS 
   
-  alias :pbStartSceneOldFL :pbStartScene
-  def pbStartScene(dexlist,index,region)
-    @maxPage = $game_switches[SWITCH] ? 4 : 3
-    pbStartSceneOldFL(dexlist,index,region)
-    @sprites["advanceicon"]=PokemonSpeciesIconSprite.new(@species,@viewport)
-    @sprites["advanceicon"].x=52
-    @sprites["advanceicon"].y=290
-    @sprites["advanceicon"].visible = false
-  end
-  
-  alias :drawPageOldFL :drawPage
-  def drawPage(page)
-    drawPageOldFL(page)
-    return if @brief
-    dexbarVisible = $game_switches[SWITCH] && @page<=3
-    @sprites["dexbar"] = IconSprite.new(0,0,@viewport) if !@sprites["dexbar"]
-    @sprites["dexbar"].visible = dexbarVisible
-    if dexbarVisible
-      barBitmapPath = [
-        nil,
-        _INTL("Graphics/Pictures/Pokedex/advancedInfoBar"),
-        _INTL("Graphics/Pictures/Pokedex/advancedAreaBar"),
-        _INTL("Graphics/Pictures/Pokedex/advancedFormsBar")
-      ]
-      @sprites["dexbar"].setBitmap(barBitmapPath[@page])
-    end
-    @sprites["advanceicon"].visible = page==4 if @sprites["advanceicon"]
-    drawPageAdvanced if page==4
-  end
-  
-  alias :pbUpdateDummyPokemonOldFL :pbUpdateDummyPokemon
-  def pbUpdateDummyPokemon
-    pbUpdateDummyPokemonOldFL
-    if @sprites["advanceicon"]
-      @sprites["advanceicon"].pbSetParams(@species,@gender,@form)
-    end
-  end
-  
-  BASECOLOR = Color.new(88,88,80)
-  SHADOWCOLOR = Color.new(168,184,184)
-  BASE_X = 32
-  EXTRA_X = 224
-  BASE_Y = 64
-  EXTRA_Y = 32
-  
-  def drawPageAdvanced
-    @sprites["background"].setBitmap(
-      _INTL("Graphics/Pictures/Pokedex/bg_advanced"))
+  def pbStartScene(species)
+    @viewport=Viewport.new(0,0,Graphics.width,Graphics.height)
+    @viewport.z=99999
+    @species=species
+    @sprites={}
+    @sprites["background"]=IconSprite.new(0,0,@viewport)
+    @sprites["background"].setBitmap(_INTL("Graphics/Pictures/advancedPokedex"))
+    @sprites["overlay"]=BitmapSprite.new(
+        Graphics.width,Graphics.height,@viewport)
+    pbSetSystemFont(@sprites["overlay"].bitmap)
+    @sprites["overlay"].x=0
+    @sprites["overlay"].y=0
+    @sprites["info"]=BitmapSprite.new(Graphics.width,Graphics.height,@viewport)
+    @sprites["icon"]=PokemonSpeciesIconSprite.new(@species,@viewport)
+    @sprites["icon"].x=52
+    @sprites["icon"].y=290
     @type1=nil
     @type2=nil
-    @subPage=1
-    @totalSubPages=0
+    @page=1
+    @totalPages=0
     if $Trainer.owned[@species]
       @infoPages=3
       @infoArray=getInfo
@@ -121,86 +118,20 @@ class PokemonPokedexInfo_Scene
       @levelMovesPages = (@levelMovesArray.size+9)/10
       @eggMovesPages = (@eggMovesArray.size+9)/10
       @machineMovesPages=(@machineMovesArray.size+9)/10 if SHOWMACHINETUTORMOVES
-      @totalSubPages = @infoPages+@levelMovesPages+@eggMovesPages
-      @totalSubPages+=@machineMovesPages if SHOWMACHINETUTORMOVES
+      @totalPages = @infoPages+@levelMovesPages+@eggMovesPages
+      @totalPages+=@machineMovesPages if SHOWMACHINETUTORMOVES
+      displayPage
     end
-    displaySubPage
+    pbUpdate
+    return true
   end
   
-  def displaySubPage
-    overlay = @sprites["overlay"].bitmap
-    overlay.clear
-    height = Graphics.height-54
-    
-    # Bottom text  
-    textpos = [[PBSpecies.getName(@species),(Graphics.width+72)/2,height-32,
-      2,BASECOLOR,SHADOWCOLOR]]
-    if $Trainer.owned[@species]
-      textpos.push([_INTL("{1}/{2}",@subPage,@totalSubPages),
-        Graphics.width-52,height,1,BASECOLOR,SHADOWCOLOR])
-    end
-    pbDrawTextPositions(@sprites["overlay"].bitmap, textpos)
-    
-    # Type icon
-    if !@type1 # Only checks for not owned pokémon
-      dexdata=pbOpenDexData
-      pbDexDataOffset(dexdata,@species,8)
-      @type1=dexdata.fgetb
-      @type2=dexdata.fgetb
-      dexdata.close
-    end
-    type1rect = Rect.new(0,@type1*32,96,32)
-    type2rect = Rect.new(0,@type2*32,96,32)
-    if(@type1==@type2)
-      overlay.blt((Graphics.width+16-36)/2,height,@typebitmap.bitmap,type1rect)
-    else  
-      overlay.blt((Graphics.width+16-144)/2,height,@typebitmap.bitmap,type1rect)
-      overlay.blt((Graphics.width+16+72)/2,height,
-        @typebitmap.bitmap,type2rect) if @type1!=@type2
-    end
-    
-    return if !$Trainer.owned[@species]
-    
-    # Page content
-    if(@subPage<=@infoPages)
-      subPageInfo(@subPage)
-    elsif(@subPage<=@infoPages+@levelMovesPages)
-      subPageMoves(@levelMovesArray,_INTL("LEVEL UP MOVES:"),@subPage-@infoPages)
-    elsif(@subPage<=@infoPages+@levelMovesPages+@eggMovesPages)
-      subPageMoves(@eggMovesArray,_INTL("EGG MOVES:"),
-          @subPage-@infoPages-@levelMovesPages)
-    elsif(SHOWMACHINETUTORMOVES && @subPage <= 
-        @infoPages+@levelMovesPages+@eggMovesPages+@machineMovesPages)
-      subPageMoves(@machineMovesArray,_INTL("MACHINE MOVES:"),
-          @subPage-@infoPages-@levelMovesPages-@eggMovesPages)
-    end
-  end
-  
-  def subPageInfo(subPage)
-    textpos = []
-    for i in (12*(subPage-1))...(12*subPage)
-      line = i%6
-      column = i/6
-      next if !@infoArray[column][line]
-      x = BASE_X+EXTRA_X*(column%2)
-      y = BASE_Y+EXTRA_Y*line
-      textpos.push([@infoArray[column][line],x,y,false,BASECOLOR,SHADOWCOLOR])
-    end
-    pbDrawTextPositions(@sprites["overlay"].bitmap, textpos)
-  end  
-    
-  def subPageMoves(movesArray,label,subPage)
-    textpos = [[label,BASE_X,BASE_Y,false,BASECOLOR,SHADOWCOLOR]]
-      for i in (10*(subPage-1))...(10*subPage)
-      break if i>=movesArray.size
-      line = i%5
-      column = i/5
-      x = BASE_X+EXTRA_X*(column%2)
-      y = BASE_Y+EXTRA_Y*(line+1)
-      textpos.push([movesArray[i],x,y,false,BASECOLOR,SHADOWCOLOR])
-    end
-    pbDrawTextPositions(@sprites["overlay"].bitmap,textpos)
-  end  
+  BASECOLOR = Color.new(88,88,80)
+  SHADOWCOLOR = Color.new(168,184,184)
+  BASE_X = 32
+  EXTRA_X = 224
+  BASE_Y = 64
+  EXTRA_Y = 32
   
   def getInfo
     ret = []
@@ -269,6 +200,7 @@ class PokemonPokedexInfo_Scene
         _INTL("{1}, {2}",eggGroupArray[compat10],eggGroupArray[compat11])
     ret[0][5]=_INTL("BREED GROUP: {1}",eggGroups)
     # Base Stats
+    dexdata=pbOpenDexData
     pbDexDataOffset(dexdata,@species,10)
     baseStats=[
         dexdata.fgetb, # HP
@@ -290,6 +222,7 @@ class PokemonPokedexInfo_Scene
         baseStats[0],baseStats[1],baseStats[2],
         baseStats[3],baseStats[4],baseStats[5],baseStats[6])
     # Effort Points
+    dexdata=pbOpenDexData
     pbDexDataOffset(dexdata,@species,23)
     effortPoints=[
         dexdata.fgetb, # HP
@@ -310,9 +243,9 @@ class PokemonPokedexInfo_Scene
         effortPoints[0],effortPoints[1],effortPoints[2],
         effortPoints[3],effortPoints[4],effortPoints[5],effortPoints[6])
     # Abilities
-    pbDexDataOffset(dexdata,@species,2)
-    ability1=dexdata.fgetw
-    ability2=dexdata.fgetw
+    pbDexDataOffset(dexdata,@species,29)
+    ability1=dexdata.fgetb
+    ability2=dexdata.fgetb
     abilityString=(ability1==ability2 || ability2==0) ? 
         PBAbilities.getName(ability1) : _INTL("{1}, {2}",
         PBAbilities.getName(ability1), PBAbilities.getName(ability2))
@@ -377,20 +310,20 @@ class PokemonPokedexInfo_Scene
         "" : evolutionsStrings[0])
     evolutionsStrings.shift
     line+=1
-      for string in evolutionsStrings
-      if(line>5) # For when the pokémon has more than 3 evolutions (AKA Eevee) 
+    for string in evolutionsStrings
+      if(line>5) # For when the pokÃ©mon has more than 3 evolutions (AKA Eevee) 
         line=0
-          column+=2
+        column+=2
         @infoPages+=1 # Creates a new page
       end
-        ret[column][line] = string
+      ret[column][line] = string
       line+=1
-      end
-      # End
-      dexdata.close
+    end
+    # End
+    dexdata.close
     return ret
-    end  
-    
+  end  
+  
   # Gets the evolution array and return evolution message
   def getEvolutionMessage(evolution)
     evoPokemon = PBSpecies.getName(evolution[2])
@@ -401,7 +334,7 @@ class PokemonPokedexInfo_Scene
       when 2; _INTL("{1} when happy at day",evoPokemon)
       when 3; _INTL("{1} when happy at night",evoPokemon)
       when 4, 13;_INTL("{1} at level {2}",
-          evoPokemon,evoItem) # Pokémon that evolve by level AND Ninjask
+          evoPokemon,evoItem) # PokÃ©mon that evolve by level AND Ninjask
       when 5; _INTL("{1} trading",evoPokemon)
       when 6; _INTL("{1} trading holding {2}",
           evoPokemon,PBItems.getName(evoItem))
@@ -448,14 +381,14 @@ class PokemonPokedexInfo_Scene
       when 32;_INTL("{1} custom7 with {2}", evoPokemon,evoItem)
       else; ""  
     end  
-      ret = _INTL("{1} by an unknown way", evoPokemon) if(ret.empty? ||
+    ret = _INTL("{1} by an unknown way", evoPokemon) if(ret.empty? ||
         (evoMethod>=26 && HIDECUSTOMEVOLUTION))
     return ret    
   end
-    
+  
   def getLevelMoves
     ret=[]
-      atkdata=pbRgssOpen("Data/attacksRS.dat","rb")
+    atkdata=pbRgssOpen("Data/attacksRS.dat","rb")
     offset=atkdata.getOffset(@species-1)
     length=atkdata.getLength(@species-1)>>1
     atkdata.pos=offset
@@ -464,13 +397,13 @@ class PokemonPokedexInfo_Scene
       move=PBMoves.getName(atkdata.fgetw)
       ret.push(_ISPRINTF("{1:02d} {2:s}",level,move))
     end
-      atkdata.close
+    atkdata.close
     return ret
-    end  
-    
+  end  
+  
   def getEggMoves
     ret=[]  
-      eggMoveSpecies = @species
+    eggMoveSpecies = @species
     eggMoveSpecies = pbGetBabySpecies(eggMoveSpecies) if EGGMOVESFISTSTAGE
     pbRgssOpen("Data/eggEmerald.dat","rb"){|f|
       f.pos=(eggMoveSpecies-1)*8
@@ -482,13 +415,13 @@ class PokemonPokedexInfo_Scene
           move=PBMoves.getName(f.fgetw)
           ret.push(_ISPRINTF("     {1:s}",move))
           i+=1
-          end
         end
-      }
+      end
+    }
     ret.sort!
     return ret
   end  
-    
+  
   def getMachineMoves
     ret=[]
     movesArray=[]
@@ -498,7 +431,7 @@ class PokemonPokedexInfo_Scene
       next if !tmData[move]
       movesArray.push(move) if tmData[move].any?{ |item| item==@species }
     end
-      for item in 1..PBItems.maxValue
+    for item in 1..PBItems.maxValue
       if pbIsMachine?(item)
         move = $ItemData[item][ITEMMACHINE]
         if movesArray.include?(move)
@@ -510,7 +443,7 @@ class PokemonPokedexInfo_Scene
                 machineLabel,PBMoves.getName(move)))
             movesArray.delete(move)
           else
-              machineMoves.push(move)
+            machineMoves.push(move)
           end  
         end
       end  
@@ -525,4 +458,134 @@ class PokemonPokedexInfo_Scene
     ret = ret.sort + unnumeredMoves.sort
     return ret
   end  
+  
+  def displayPage
+    return if !$Trainer.owned[@species]
+    if(@page<=@infoPages)
+      pageInfo(@page)
+    elsif(@page<=@infoPages+@levelMovesPages)
+      pageMoves(@levelMovesArray,_INTL("LEVEL UP MOVES:"),@page-@infoPages)
+    elsif(@page<=@infoPages+@levelMovesPages+@eggMovesPages)
+      pageMoves(@eggMovesArray,_INTL("EGG MOVES:"),
+          @page-@infoPages-@levelMovesPages)
+    elsif(SHOWMACHINETUTORMOVES && 
+        @page <= @infoPages+@levelMovesPages+@eggMovesPages+@machineMovesPages)
+      pageMoves(@machineMovesArray,_INTL("MACHINE MOVES:"),
+          @page-@infoPages-@levelMovesPages-@eggMovesPages)
+    end
+  end  
+  
+  def pageInfo(page)
+    @sprites["overlay"].bitmap.clear
+    textpos = []
+    for i in (12*(page-1))...(12*page)
+      line = i%6
+      column = i/6
+      next if !@infoArray[column][line]
+      x = BASE_X+EXTRA_X*(column%2)
+      y = BASE_Y+EXTRA_Y*line
+      textpos.push([@infoArray[column][line],x,y,false,BASECOLOR,SHADOWCOLOR])
+    end
+    pbDrawTextPositions(@sprites["overlay"].bitmap,textpos)
+  end  
+  
+  def pageMoves(movesArray,label,page)
+    @sprites["overlay"].bitmap.clear
+    textpos = [[label,BASE_X,BASE_Y,false,BASECOLOR,SHADOWCOLOR]]
+    for i in (10*(page-1))...(10*page)
+      break if i>=movesArray.size
+      line = i%5
+      column = i/5
+      x = BASE_X+EXTRA_X*(column%2)
+      y = BASE_Y+EXTRA_Y*(line+1)
+      textpos.push([movesArray[i],x,y,false,BASECOLOR,SHADOWCOLOR])
+    end
+    pbDrawTextPositions(@sprites["overlay"].bitmap,textpos)
+  end  
+  
+  def pbUpdate
+    @sprites["info"].bitmap.clear
+    pbSetSystemFont(@sprites["info"].bitmap)
+    height = Graphics.height-54
+    text=[[PBSpecies.getName(@species),(Graphics.width+72)/2,height-32,
+         2,BASECOLOR,SHADOWCOLOR]]
+    text.push([_INTL("{1}/{2}",@page,@totalPages),Graphics.width-52,height,
+         1,BASECOLOR,SHADOWCOLOR]) if $Trainer.owned[@species]
+    pbDrawTextPositions(@sprites["info"].bitmap,text)
+    typebitmap=AnimatedBitmap.new(_INTL("Graphics/Pictures/pokedexTypes"))
+    if !@type1 # This "if" only occurs when the getInfo isn't called
+      dexdata=pbOpenDexData
+      pbDexDataOffset(dexdata,@species,8) # Type
+      @type1=dexdata.fgetb
+      @type2=dexdata.fgetb
+      dexdata.close
+    end
+    type1rect=Rect.new(0,@type1*32,96,32)
+    type2rect=Rect.new(0,@type2*32,96,32)
+    if(@type1==@type2)
+      @sprites["info"].bitmap.blt((Graphics.width+16-36)/2,height,
+          typebitmap.bitmap,type1rect)
+    else  
+      @sprites["info"].bitmap.blt((Graphics.width+16-144)/2,height,
+          typebitmap.bitmap,type1rect)
+      @sprites["info"].bitmap.blt((Graphics.width+16+72)/2,height,
+          typebitmap.bitmap,type2rect) if @type1!=@type2
+    end
+    @sprites["icon"].update
+  end
+
+  def pbControls(listlimits)
+    Graphics.transition
+    ret=0
+    loop do
+      Graphics.update
+      Input.update
+      pbUpdate
+      if Input.trigger?(Input::C)
+        @page+=1
+        @page=1 if @page>@totalPages
+        displayPage
+      elsif Input.trigger?(Input::A)
+        @page-=1
+        @page=@totalPages if @page<1
+        displayPage
+      elsif Input.trigger?(Input::LEFT)
+        ret=4
+        break
+      # If not at top of list  
+      elsif Input.trigger?(Input::UP) && listlimits&1==0 
+        ret=8
+        break
+      # If not at end of list  
+      elsif Input.trigger?(Input::DOWN) && listlimits&2==0 
+        ret=2
+        break
+      elsif Input.trigger?(Input::B)
+        ret=1
+        pbPlayCancelSE()
+        pbFadeOutAndHide(@sprites)
+        break
+      end
+    end
+    return ret
+  end
+
+  def pbEndScene
+    pbDisposeSpriteHash(@sprites)
+    @viewport.dispose
+  end
+end
+
+
+class AdvancedPokedex
+  def initialize(scene)
+    @scene=scene
+  end
+
+  def pbStartScreen(species,listlimits)
+    @scene.pbStartScene(species)
+    ret=@scene.pbControls(listlimits)
+    @scene.pbEndScene
+    return ret
+  end
 end

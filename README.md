@@ -12,4 +12,4 @@ This script is for Pok√©mon Essentials. When a switch is ON, it displays at pok√
 Follow the [Script](/Script.rb) instructions. The sample script files are in [Files folder](/Files).
 
 ## Compatibility
-Tested on Essentials v17.2. Doesn't work with v18 or above.
+Tested on Essentials v13 and v16.2. Doesn't work with v17 or above.
