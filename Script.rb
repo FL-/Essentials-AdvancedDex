@@ -21,7 +21,7 @@
 
 PluginManager.register({                                                 
   :name    => "Advanced Pokédex",                                        
-  :version => "1.3.1",                                                     
+  :version => "1.3.2",                                                     
   :link    => "https://www.pokecommunity.com/showthread.php?t=315535",             
   :credits => "FL"
 })
@@ -141,20 +141,32 @@ class PokemonPokedexInfo_Scene
   end
   
   def drawPageAdvanced
-    @sprites["background"].setBitmap(_INTL("Graphics/Pictures/Pokedex/advancedPokedex"))
+    @sprites["background"].setBitmap(
+      _INTL("Graphics/Pictures/Pokedex/advancedPokedex")
+    )
     @totalSubPages=0
     @data = GameData::Species.get_species_form(@species, @form)
     if $Trainer.owned?(@species)
       @groupArray = []
       @groupArray.push(PageGroup.newInfoGroup(getInfo))
-      @groupArray.push(PageGroup.newMoveGroup(_INTL("LEVEL UP MOVES:"), getLevelMoves))
+      @groupArray.push(PageGroup.newMoveGroup(
+        _INTL("LEVEL UP MOVES:"), getLevelMoves
+      ))
       @groupArray.push(PageGroup.newMoveGroup(_INTL("EGG MOVES:"), getEggMoves))
       if SHOW_MACHINE_TUTOR_MOVES
         machineMoves = getMachineMoves
-        @groupArray.push(PageGroup.newMoveGroup(_INTL("TM MOVES:"), machineMoves[0]))
-        @groupArray.push(PageGroup.newMoveGroup(_INTL("TR MOVES:"), machineMoves[1]))
-        @groupArray.push(PageGroup.newMoveGroup(_INTL("HM MOVES:"), machineMoves[2]))
-        @groupArray.push(PageGroup.newMoveGroup(_INTL("TUTOR MOVES:"), machineMoves[3]))
+        @groupArray.push(PageGroup.newMoveGroup(
+          _INTL("TM MOVES:"), machineMoves[0])
+        )
+        @groupArray.push(PageGroup.newMoveGroup(
+          _INTL("TR MOVES:"), machineMoves[1])
+        )
+        @groupArray.push(PageGroup.newMoveGroup(
+          _INTL("HM MOVES:"), machineMoves[2])
+        )
+        @groupArray.push(PageGroup.newMoveGroup(
+          _INTL("TUTOR MOVES:"), machineMoves[3])
+        )
       end
       @totalSubPages = @groupArray.sum{|group| group.pages}
       @subPage= [@totalSubPages, @subPage].min
@@ -168,10 +180,14 @@ class PokemonPokedexInfo_Scene
     line2Y = Graphics.height-54
     
     # Bottom text  
-    textpos = [[@data.name,Graphics.width/2,Graphics.height-94,2,BASE_COLOR,SHADOW_COLOR]]
+    textpos = [[
+      @data.name,Graphics.width/2,Graphics.height-94,2,BASE_COLOR,SHADOW_COLOR
+    ]]
     if $Trainer.owned?(@species)
       textpos.push([
-        _INTL("{1}/{2}",@subPage,@totalSubPages),Graphics.width-52,Graphics.height-62,1,BASE_COLOR,SHADOW_COLOR])
+        _INTL("{1}/{2}",@subPage,@totalSubPages),
+        Graphics.width-52,Graphics.height-62,1,BASE_COLOR,SHADOW_COLOR
+      ])
     end
     pbDrawTextPositions(@sprites["overlay"].bitmap, textpos)
     
@@ -211,7 +227,9 @@ class PokemonPokedexInfo_Scene
       next if !group.array[column][line]
       x = BASE_X+EXTRA_X*(column%2)
       y = BASE_Y+EXTRA_Y*line
-      textpos.push([group.array[column][line],x,y,false,BASE_COLOR,SHADOW_COLOR])
+      textpos.push([
+        group.array[column][line],x,y,false,BASE_COLOR,SHADOW_COLOR
+      ])
     end
     pbDrawTextPositions(@sprites["overlay"].bitmap, textpos)
   end  
@@ -233,18 +251,22 @@ class PokemonPokedexInfo_Scene
     # ret works like a table with two columns per page
     ret = Array.new(2*4){ [] }
     # Base Stats
-    ret[0][0]=_ISPRINTF("                             HP ATK DEF SPD SAT SDF TOT")
+    ret[0][0]=_ISPRINTF(
+      "                             HP ATK DEF SPD SAT SDF TOT"
+    )
     ret[0][1]=_ISPRINTF(
-        "BASE STATS:       {1:03d} {2:03d} {3:03d} {4:03d} {5:03d} {6:03d} {7:03d}",
-        @data.base_stats[:HP],@data.base_stats[:ATTACK],@data.base_stats[:DEFENSE],
-        @data.base_stats[:SPEED],@data.base_stats[:SPECIAL_ATTACK],
-        @data.base_stats[:SPECIAL_DEFENSE],@data.base_stats.values.sum)
+      "BASE STATS:       {1:03d} {2:03d} {3:03d} {4:03d} {5:03d} {6:03d} {7:03d}",
+      @data.base_stats[:HP],@data.base_stats[:ATTACK],@data.base_stats[:DEFENSE],
+      @data.base_stats[:SPEED],@data.base_stats[:SPECIAL_ATTACK],
+      @data.base_stats[:SPECIAL_DEFENSE],@data.base_stats.values.sum
+    )
     # Effort Points
     ret[0][2]=_ISPRINTF(
-        "EFFORT POINTS: {1:03d} {2:03d} {3:03d} {4:03d} {5:03d} {6:03d} {7:03d}",
-        @data.evs[:HP],@data.evs[:ATTACK],@data.evs[:DEFENSE],
-        @data.evs[:SPEED],@data.evs[:SPECIAL_ATTACK],
-        @data.evs[:SPECIAL_DEFENSE],@data.evs.values.sum)
+      "EFFORT POINTS: {1:03d} {2:03d} {3:03d} {4:03d} {5:03d} {6:03d} {7:03d}",
+      @data.evs[:HP],@data.evs[:ATTACK],@data.evs[:DEFENSE],
+      @data.evs[:SPEED],@data.evs[:SPECIAL_ATTACK],
+      @data.evs[:SPECIAL_DEFENSE],@data.evs.values.sum
+    )
     # Abilities
     if @data.abilities.size<2
       abilityString = GameData::Ability.get(@data.abilities[0]).name
@@ -279,7 +301,9 @@ class PokemonPokedexInfo_Scene
     ret[2][1]=_INTL("CATCH RATE: {1}",@data.catch_rate)
     # Growth Rate
     growthRate = GameData::GrowthRate.get(@data.growth_rate)
-    ret[2][2]=_INTL("GROWTH RATE: {1} ({2})",growthRate.name,growthRate.maximum_exp)
+    ret[2][2]=_INTL(
+      "GROWTH RATE: {1} ({2})",growthRate.name,growthRate.maximum_exp
+    )
     # Gender Rate
     genderRatio = GameData::GenderRatio.get(@data.gender_ratio)
     if genderRatio.female_chance
@@ -289,7 +313,10 @@ class PokemonPokedexInfo_Scene
     end
     ret[2][3]= _INTL("GENDER RATE: {1}", genderString)
     # Egg Steps to Hatch
-    ret[2][4]=_INTL("STEPS TO HATCH EGG: {1} ({2} cycles)",@data.hatch_steps,@data.hatch_steps/255)
+    ret[2][4]= _INTL(
+      "STEPS TO HATCH EGG: {1} ({2} cycles)",
+      @data.hatch_steps,@data.hatch_steps/255
+    )
     # Breed Group
     if @data.egg_groups.size==1
       eggGroups = GameData::EggGroup.get(@data.egg_groups[0]).name
@@ -317,16 +344,24 @@ class PokemonPokedexInfo_Scene
       @data.wild_item_common==@data.wild_item_uncommon && 
       @data.wild_item_common == @data.wild_item_rare)
     if hasAlwaysHoldItem
-      holdItemsStrings.push(_INTL("{1} (always)",GameData::Item.get(@data.wild_item_common).name))
+      holdItemsStrings.push(
+        _INTL("{1} (always)",GameData::Item.get(@data.wild_item_common).name)
+      )
     else
       holdItemsStrings.push(_INTL("{1} (common)", GameData::Item.get(
-        @data.wild_item_common).name)) if @data.wild_item_common
+        @data.wild_item_common).name)
+      ) if @data.wild_item_common
       holdItemsStrings.push(_INTL("{1} (uncommon)", GameData::Item.get(
-        @data.wild_item_uncommon).name)) if @data.wild_item_uncommon
+        @data.wild_item_uncommon).name)
+      ) if @data.wild_item_uncommon
       holdItemsStrings.push(_INTL("{1} (rare)", GameData::Item.get(
-        @data.wild_item_rare).name)) if @data.wild_item_rare
+        @data.wild_item_rare).name)
+      ) if @data.wild_item_rare
     end
-    ret[6][0] = _INTL("WILD ITEMS: {1}",holdItemsStrings.empty? ? _INTL("None") : holdItemsStrings[0])
+    ret[6][0] = _INTL(
+      "WILD ITEMS: {1}",
+      holdItemsStrings.empty? ? _INTL("None") : holdItemsStrings[0]
+    )
     ret[6][1] = holdItemsStrings[1] if holdItemsStrings.size>1
     ret[6][2] = holdItemsStrings[2] if holdItemsStrings.size>2
     # Evolutions
@@ -336,12 +371,17 @@ class PokemonPokedexInfo_Scene
       # The below "if" it's to won't list the same evolution species more than
       # one time. Only the last is displayed.
       evolutionsStrings.pop if lastEvolutionSpecies==evoData[0]
-      evolutionsStrings.push(getEvolutionMessage(evoData[0], evoData[1], evoData[2]))
+      evolutionsStrings.push(getEvolutionMessage(
+        evoData[0], evoData[1], evoData[2])
+      )
       lastEvolutionSpecies=evoData[0]
     end
     line=3
     column=6
-    ret[column][line] = _INTL("EVO: {1}",evolutionsStrings.empty? ? _INTL("None") : evolutionsStrings[0])
+    ret[column][line] = _INTL(
+      "EVO: {1}",
+      evolutionsStrings.empty? ? _INTL("None") : evolutionsStrings[0]
+    )
     evolutionsStrings.shift
     line+=1
     for string in evolutionsStrings
@@ -358,7 +398,10 @@ class PokemonPokedexInfo_Scene
     if babySpecies!=@data.id
       babyData = GameData::Species.get(babySpecies)
       if babyData.incense
-        ret[6][5]=_INTL("Generates {1} holding {2}",babyData.name,GameData::Item.get(babyData.incense).name)
+        ret[6][5]=_INTL(
+          "Generates {1} holding {2}",
+          babyData.name,GameData::Item.get(babyData.incense).name
+        )
       end 
     end
     return ret
@@ -428,12 +471,20 @@ class PokemonPokedexInfo_Scene
   
   def getLevelMoves
     return @data.moves.map{|moveData|
-      _ISPRINTF("{1:02d} {2:s}",moveData[0],GameData::Move.get(moveData[1]).name)
+      _ISPRINTF(
+        "{1:02d} {2:s}",moveData[0],GameData::Move.get(moveData[1]).name
+      )
     }
   end 
 
   def getEggMoves
-    eggMoveSpecies = EGG_MOVES_FIRST_STAGE ? @data.get_baby_species : @data.id
+    if EGG_MOVES_FIRST_STAGE
+      eggMoveSpecies = GameData::Species.get_species_form(
+        @data.get_baby_species, @form
+      )
+    else
+      eggMoveSpecies = @data.id
+    end
     return GameData::Species.get(eggMoveSpecies).egg_moves.map{|move|
       GameData::Move.get(move).name
     }.sort
@@ -451,8 +502,12 @@ class PokemonPokedexInfo_Scene
         next if !item.is_machine? || !movesArray.include?(item.move)
         if MACHINE_DIGITS>0
           machineLabel = item.name[2,item.name.size].to_i
-          machineLabel = "%0#{MACHINE_DIGITS}d" % (machineLabel % 10**MACHINE_DIGITS)
-          moveLabel = _INTL("{1} {2}",machineLabel,GameData::Move.get(item.move).name)
+          machineLabel = "%0#{MACHINE_DIGITS}d" % (
+            machineLabel % 10**MACHINE_DIGITS
+          )
+          moveLabel = _INTL(
+            "{1} {2}",machineLabel,GameData::Move.get(item.move).name
+          )
         else
           moveLabel = GameData::Move.get(item.move).name
         end
