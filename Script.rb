@@ -15,16 +15,18 @@
 # "advancedAreaBar" and "advancedFormsBar".
 #
 # In UI_Pokedex_Entry script section, change both lines (use Ctrl+F to find
-# it) '@page = 3 if @page>3' into '@page=@maxPage if @page>@maxPage'.
+# it) '@page = 3 if @page > 3' into '@page=@maxPage if @page>@maxPage'.
 #
 #===============================================================================
 
-PluginManager.register({                                                 
-  :name    => "Advanced Pokédex",                                        
-  :version => "1.3.2",                                                     
-  :link    => "https://www.pokecommunity.com/showthread.php?t=315535",             
-  :credits => "FL"
-})
+if !PluginManager.installed?("Advanced Pokédex")
+  PluginManager.register({                                                 
+    :name    => "Advanced Pokédex",                                        
+    :version => "1.3.3",                                                     
+    :link    => "https://www.pokecommunity.com/showthread.php?t=315535",             
+    :credits => "FL"
+  })
+end
 
 class PokemonPokedexInfo_Scene
   # Switch number that toggle this script ON/OFF
@@ -42,6 +44,9 @@ class PokemonPokedexInfo_Scene
   # TMs/TRs/HMs digits to show on list. When 0, doesn't show number
   MACHINE_DIGITS = 3
   
+  # Name of TM/TR usable only once
+  TR_NAME = "TM"
+  
   # When true always shows the egg moves of the first evolution stage
   EGG_MOVES_FIRST_STAGE = true
   
@@ -51,7 +56,7 @@ class PokemonPokedexInfo_Scene
     @subPage=1
     pbStartSceneOldFL(dexlist,index,region)
     @sprites["advancedicon"]=PokemonSpeciesIconSprite.new(nil,@viewport)
-    @sprites["advancedicon"].setOffset(PictureOrigin::Center)
+    @sprites["advancedicon"].setOffset(PictureOrigin::CENTER)
     @sprites["advancedicon"].x = 82
     @sprites["advancedicon"].y = 328
     @sprites["advancedicon"].visible = false
@@ -103,7 +108,7 @@ class PokemonPokedexInfo_Scene
   SHADOW_COLOR = Color.new(168,184,184)
   BASE_X = 30
   EXTRA_X = 224
-  BASE_Y = 56
+  BASE_Y = 66
   EXTRA_Y = 32
 
   class PageGroup
@@ -159,7 +164,7 @@ class PokemonPokedexInfo_Scene
           _INTL("TM MOVES:"), machineMoves[0])
         )
         @groupArray.push(PageGroup.newMoveGroup(
-          _INTL("TR MOVES:"), machineMoves[1])
+          _INTL("#{TR_NAME} MOVES:"), machineMoves[1])
         )
         @groupArray.push(PageGroup.newMoveGroup(
           _INTL("HM MOVES:"), machineMoves[2])
@@ -181,25 +186,29 @@ class PokemonPokedexInfo_Scene
     
     # Bottom text  
     textpos = [[
-      @data.name,Graphics.width/2,Graphics.height-94,2,BASE_COLOR,SHADOW_COLOR
+      @data.name,Graphics.width/2,Graphics.height-82,2,BASE_COLOR,SHADOW_COLOR
     ]]
     if $Trainer.owned?(@species)
       textpos.push([
         _INTL("{1}/{2}",@subPage,@totalSubPages),
-        Graphics.width-52,Graphics.height-62,1,BASE_COLOR,SHADOW_COLOR
+        Graphics.width-52,Graphics.height-52,1,BASE_COLOR,SHADOW_COLOR
       ])
     end
     pbDrawTextPositions(@sprites["overlay"].bitmap, textpos)
-    
+
     # Type icon
-    type1rect = Rect.new(0,GameData::Type.get(@data.type1).id_number*32,96,32)
-    type2rect = Rect.new(0,GameData::Type.get(@data.type2).id_number*32,96,32)
+    type1rect = Rect.new(
+      0,GameData::Type.get(@data.types[0]).icon_position*32,96,32
+    )
+    type2rect = @data.types.size>1 ? Rect.new(
+      0,GameData::Type.get(@data.types[1]).icon_position*32,96,32
+    ) : nil 
     typeBaseX = (Graphics.width-type1rect.width)/2
-    if(@data.type1==@data.type2)
-      overlay.blt(typeBaseX,line2Y,@typebitmap.bitmap,type1rect)
-    else
+    if type2rect
       overlay.blt(typeBaseX-54,line2Y,@typebitmap.bitmap,type1rect)
       overlay.blt(typeBaseX+54,line2Y,@typebitmap.bitmap,type2rect)
+    else
+      overlay.blt(typeBaseX,line2Y,@typebitmap.bitmap,type1rect)
     end
     
     return if !$Trainer.owned?(@species)
@@ -340,23 +349,25 @@ class PokemonPokedexInfo_Scene
     end
     # Wild hold item 
     holdItemsStrings=[]
-    hasAlwaysHoldItem = (@data.wild_item_common && 
-      @data.wild_item_common==@data.wild_item_uncommon && 
-      @data.wild_item_common == @data.wild_item_rare)
+    hasAlwaysHoldItem = (
+      @data.wild_item_common[0] &&
+      @data.wild_item_common[0] == @data.wild_item_uncommon[0] && 
+      @data.wild_item_common[0] == @data.wild_item_rare[0]
+    )
     if hasAlwaysHoldItem
       holdItemsStrings.push(
-        _INTL("{1} (always)",GameData::Item.get(@data.wild_item_common).name)
+        _INTL("{1} (always)",GameData::Item.get(@data.wild_item_common[0]).name)
       )
     else
       holdItemsStrings.push(_INTL("{1} (common)", GameData::Item.get(
-        @data.wild_item_common).name)
-      ) if @data.wild_item_common
+        @data.wild_item_common[0]
+      ).name)) if @data.wild_item_common[0]
       holdItemsStrings.push(_INTL("{1} (uncommon)", GameData::Item.get(
-        @data.wild_item_uncommon).name)
-      ) if @data.wild_item_uncommon
+        @data.wild_item_uncommon[0]
+      ).name)) if @data.wild_item_uncommon[0]
       holdItemsStrings.push(_INTL("{1} (rare)", GameData::Item.get(
-        @data.wild_item_rare).name)
-      ) if @data.wild_item_rare
+        @data.wild_item_rare[0]
+      ).name)) if @data.wild_item_rare[0]
     end
     ret[6][0] = _INTL(
       "WILD ITEMS: {1}",
