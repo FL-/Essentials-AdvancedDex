@@ -22,7 +22,7 @@
 if !PluginManager.installed?("Advanced Pokédex")
   PluginManager.register({                                                 
     :name    => "Advanced Pokédex",                                        
-    :version => "1.3.3",                                                     
+    :version => "1.3.4",                                                     
     :link    => "https://www.pokecommunity.com/showthread.php?t=315535",             
     :credits => "FL"
   })
@@ -49,10 +49,24 @@ class PokemonPokedexInfo_Scene
   
   # When true always shows the egg moves of the first evolution stage
   EGG_MOVES_FIRST_STAGE = true
+
+  # The Advanced Pokédex page number. You need to edit it (and barBitmapPath) if
+  # you added more pages to the pokédex. Don't decrease it.
+  ADVANCED_PAGE = 4
+
+  # Returns a bar index with ADV label for each page index.
+  def barBitmapPath
+    return [
+      nil,
+      _INTL("Graphics/Pictures/Pokedex/advancedInfoBar"),
+      _INTL("Graphics/Pictures/Pokedex/advancedAreaBar"),
+      _INTL("Graphics/Pictures/Pokedex/advancedFormsBar")
+    ]
+  end
   
   alias :pbStartSceneOldFL :pbStartScene
   def pbStartScene(dexlist,index,region)
-    @maxPage = $game_switches[SWITCH] ? 4 : 3
+    @maxPage = $game_switches[SWITCH] ? ADVANCED_PAGE : ADVANCED_PAGE-1
     @subPage=1
     pbStartSceneOldFL(dexlist,index,region)
     @sprites["advancedicon"]=PokemonSpeciesIconSprite.new(nil,@viewport)
@@ -66,37 +80,30 @@ class PokemonPokedexInfo_Scene
   def drawPage(page)
     drawPageOldFL(page)
     return if @brief
-    dexbarVisible = $game_switches[SWITCH] && @page<=3
+    dexbarVisible = $game_switches[SWITCH] && @page<ADVANCED_PAGE
     @sprites["dexbar"] = IconSprite.new(0,0,@viewport) if !@sprites["dexbar"]
     @sprites["dexbar"].visible = dexbarVisible
-    if dexbarVisible
-      barBitmapPath = [
-        nil,
-        _INTL("Graphics/Pictures/Pokedex/advancedInfoBar"),
-        _INTL("Graphics/Pictures/Pokedex/advancedAreaBar"),
-        _INTL("Graphics/Pictures/Pokedex/advancedFormsBar")
-      ]
-      @sprites["dexbar"].setBitmap(barBitmapPath[@page])
+    @sprites["dexbar"].setBitmap(barBitmapPath[@page]) if dexbarVisible
+    if @sprites["advancedicon"]
+      @sprites["advancedicon"].visible = page==ADVANCED_PAGE
     end
-    
-    @sprites["advancedicon"].visible = page==4 if @sprites["advancedicon"]
     if @sprites["advancedicon"] && @sprites["advancedicon"].visible
       @sprites["advancedicon"].pbSetParams(@species,@gender,@form)
     end
-    drawPageAdvanced if page==4
+    drawPageAdvanced if page==ADVANCED_PAGE
   end
 
   alias :pbUpdateOldFL :pbUpdate
   def pbUpdate
     pbUpdateOldFL
     if Input.trigger?(Input::ACTION)
-      if @page == 4
+      if @page == ADVANCED_PAGE
         @subPage-=1
         @subPage=@totalSubPages if @subPage<1
         displaySubPage
       end
     elsif Input.trigger?(Input::USE)
-      if @page == 4 
+      if @page == ADVANCED_PAGE
         @subPage+=1
         @subPage=1 if @subPage>@totalSubPages
         displaySubPage
@@ -151,7 +158,7 @@ class PokemonPokedexInfo_Scene
     )
     @totalSubPages=0
     @data = GameData::Species.get_species_form(@species, @form)
-    if $Trainer.owned?(@species)
+    if $player.owned?(@species)
       @groupArray = []
       @groupArray.push(PageGroup.newInfoGroup(getInfo))
       @groupArray.push(PageGroup.newMoveGroup(
@@ -188,7 +195,7 @@ class PokemonPokedexInfo_Scene
     textpos = [[
       @data.name,Graphics.width/2,Graphics.height-82,2,BASE_COLOR,SHADOW_COLOR
     ]]
-    if $Trainer.owned?(@species)
+    if $player.owned?(@species)
       textpos.push([
         _INTL("{1}/{2}",@subPage,@totalSubPages),
         Graphics.width-52,Graphics.height-52,1,BASE_COLOR,SHADOW_COLOR
@@ -211,7 +218,7 @@ class PokemonPokedexInfo_Scene
       overlay.blt(typeBaseX,line2Y,@typebitmap.bitmap,type1rect)
     end
     
-    return if !$Trainer.owned?(@species)
+    return if !$player.owned?(@species)
 
     # Page content
     turnedPages=0
