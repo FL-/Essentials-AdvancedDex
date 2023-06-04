@@ -17,12 +17,16 @@
 # In UI_Pokedex_Entry script section, change both lines (use Ctrl+F to find
 # it) '@page = 3 if @page > 3' into '@page=@maxPage if @page>@maxPage'.
 #
+#== HOW TO USE =================================================================
+#
+# Turn the switch at 'SWITCH' field (by default switch 70) as ON.
+#
 #===============================================================================
 
 if !PluginManager.installed?("Advanced Pokédex")
   PluginManager.register({                                                 
     :name    => "Advanced Pokédex",                                        
-    :version => "1.3.4",                                                     
+    :version => "1.3.5",                                                     
     :link    => "https://www.pokecommunity.com/showthread.php?t=315535",             
     :credits => "FL"
   })
@@ -30,7 +34,7 @@ end
 
 class PokemonPokedexInfo_Scene
   # Switch number that toggle this script ON/OFF
-  SWITCH=70
+  SWITCH = 70
   
   # When true displays TMs/TRs/HMs/Tutors moves
   SHOW_MACHINE_TUTOR_MOVES = true
@@ -47,11 +51,15 @@ class PokemonPokedexInfo_Scene
   # Name of TM/TR usable only once
   TR_NAME = "TM"
   
-  # When true always shows the egg moves of the first evolution stage
+  # When false doesn't show egg moves of a evolved pokémon
   EGG_MOVES_FIRST_STAGE = true
 
+  # When true only display the last evolution method for a species that has more
+  # than one evolution method (like Magneton evolving by item and location)
+  SINGLE_EVOLUTION_METHOD = true
+
   # The Advanced Pokédex page number. You need to edit it (and barBitmapPath) if
-  # you added more pages to the pokédex. Don't decrease it.
+  # you added more pages to the pokédex. Don't decrease it
   ADVANCED_PAGE = 4
 
   # Returns a bar index with ADV label for each page index.
@@ -386,9 +394,9 @@ class PokemonPokedexInfo_Scene
     evolutionsStrings = []
     lastEvolutionSpecies = nil
     for evoData in @data.get_evolutions
-      # The below "if" it's to won't list the same evolution species more than
-      # one time. Only the last is displayed.
-      evolutionsStrings.pop if lastEvolutionSpecies==evoData[0]
+      if SINGLE_EVOLUTION_METHOD && lastEvolutionSpecies==evoData[0]
+        evolutionsStrings.pop 
+      end
       evolutionsStrings.push(getEvolutionMessage(
         evoData[0], evoData[1], evoData[2])
       )
@@ -448,7 +456,7 @@ class PokemonPokedexInfo_Scene
       when :Ninjask
         _INTL("{1} at level {2}",evoName,parameter)
       when :Shedinja
-        _INTL("{1} at level {2} with empty space",evoName,parameter)
+        _INTL("{1} at level {2} with empty ball/space",evoName,parameter)
       when :Happiness
         _INTL("{1} when happy",evoName)
       when :HappinessDay
@@ -469,6 +477,8 @@ class PokemonPokedexInfo_Scene
         _INTL("{1} when has {2} at party",evoName,GameData::Species.get(parameter).name)
       when :Location
         _INTL("{1} at {2}",evoName, pbGetMapNameFromId(parameter))
+      when :LocationFlag
+        _INTL("{1} at {2} zone",evoName, parameter)
       when :Item
         _INTL("{1} using {2}",evoName,GameData::Item.get(parameter).name)
       when :ItemMale
