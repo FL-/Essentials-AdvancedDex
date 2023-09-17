@@ -10,7 +10,7 @@
 #== INSTALLATION ===============================================================
 #
 # Put it above main, put a 512x384 background named  "advancedPokedex" for this 
-# screen in "Graphics/Pictures/Pokedex/". At same folder, put three 512x32 
+# screen in "Graphics/UI/Pokedex/". At same folder, put three 512x32 
 # images for the top pokédex selection named "advancedInfoBar",
 # "advancedAreaBar" and "advancedFormsBar".
 #
@@ -26,7 +26,7 @@
 if !PluginManager.installed?("Advanced Pokédex")
   PluginManager.register({                                                 
     :name    => "Advanced Pokédex",                                        
-    :version => "1.3.5",                                                     
+    :version => "1.3.6",                                                     
     :link    => "https://www.pokecommunity.com/showthread.php?t=315535",             
     :credits => "FL"
   })
@@ -66,14 +66,15 @@ class PokemonPokedexInfo_Scene
   def barBitmapPath
     return [
       nil,
-      _INTL("Graphics/Pictures/Pokedex/advancedInfoBar"),
-      _INTL("Graphics/Pictures/Pokedex/advancedAreaBar"),
-      _INTL("Graphics/Pictures/Pokedex/advancedFormsBar")
+      _INTL("Graphics/UI/Pokedex/advancedInfoBar"),
+      _INTL("Graphics/UI/Pokedex/advancedAreaBar"),
+      _INTL("Graphics/UI/Pokedex/advancedFormsBar")
     ]
   end
   
   alias :pbStartSceneOldFL :pbStartScene
   def pbStartScene(dexlist,index,region)
+    echoln($game_switches[SWITCH]) #remove
     @maxPage = $game_switches[SWITCH] ? ADVANCED_PAGE : ADVANCED_PAGE-1
     @subPage=1
     pbStartSceneOldFL(dexlist,index,region)
@@ -162,7 +163,7 @@ class PokemonPokedexInfo_Scene
   
   def drawPageAdvanced
     @sprites["background"].setBitmap(
-      _INTL("Graphics/Pictures/Pokedex/advancedPokedex")
+      _INTL("Graphics/UI/Pokedex/advancedPokedex")
     )
     @totalSubPages=0
     @data = GameData::Species.get_species_form(@species, @form)
