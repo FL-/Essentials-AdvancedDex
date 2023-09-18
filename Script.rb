@@ -26,7 +26,7 @@
 if !PluginManager.installed?("Advanced Pokédex")
   PluginManager.register({                                                 
     :name    => "Advanced Pokédex",                                        
-    :version => "1.3.6",                                                     
+    :version => "1.3.7",                                                     
     :link    => "https://www.pokecommunity.com/showthread.php?t=315535",             
     :credits => "FL"
   })
@@ -492,6 +492,18 @@ class PokemonPokedexInfo_Scene
         _INTL("{1} trading holding {2}",evoName,GameData::Item.get(parameter).name)
       when :TradeSpecies
         _INTL("{1} trading by {2}",evoName,GameData::Species.get(parameter).name)
+      when :CollectItems
+        _INTL("{1} with 999 {2}",evoName,GameData::Item.get(parameter).real_name_plural)
+      when :LevelWithPartner
+        _INTL("{1} at level {2} with a partner", evoName,parameter)
+      when :LevelUseMoveCount
+        _INTL("{1} using move {2} 20 times", evoName, GameData::Move.get(parameter))
+      when :LevelDefeatItsKindWithItem
+        _INTL("{1} defeating 3 equals w/{2}", evoName, GameData::Item.get(parameter))
+      when :LevelRecoilDamage
+        _INTL("{1} receiving {2} recoil damage", evoName, parameter)
+      when :LevelWalk
+        _INTL("{1} doing {2} steps", evoName, parameter)
       else
         evoName
     end
